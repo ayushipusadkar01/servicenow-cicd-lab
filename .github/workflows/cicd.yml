@@ -56,6 +56,15 @@ jobs:
               exit 1 ;;
           esac
           echo "Resolved ServiceNow instance: $INSTANCE"
+
+                - name: Apply changes
+        uses: ServiceNow/sncicd-apply-changes@2.0.0
+        continue-on-error: true
+        env:
+          nowUsername: ${{ secrets.SN_USERNAME }}
+          nowPassword: ${{ secrets.SN_PASSWORD }}
+          nowSourceInstance: ${{ env.SN_INSTANCE }}
+          appScope: x_cd_grc_app
           echo "SN_INSTANCE=$INSTANCE" >> "$GITHUB_ENV"
 
       # TODO: Add apply changes step here
