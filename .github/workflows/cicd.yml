@@ -70,16 +70,14 @@ jobs:
         env:
           nowInstallInstance: ${{ env.SN_INSTANCE }}
 
-      # Part 2 - Run Instance Scan
       - name: Run Instance Scan
-        uses: ServiceNow/sncicd-instance-scan@2.0.0
-        with:
-          scantype: suite_scoped
-          suiteSysId: 6237eabc53203010b846ddeeff7b12c3
-          appScopeSysIds: 7f0cfe480d7503107f44aad6447105bd
-        env:
+  uses: ServiceNow/sncicd-instance-scan@2.0.0
+  with:
+    scantype: suite_scoped
+    suiteSysId: 6237eabc53203010b846ddeeff7b12c3
+    appScopeSysIds: 7f0cfe480d7503107f44aad6447105bd
+    env:
             nowScanInstance: ${{ env.SN_INSTANCE }}
-          suiteSysId: 6237eabc53203010b846ddeeff7b12c3
           appScopeSysIds: 7f0cfe480d7503107f44aad6447105bd
         env:
           nowScanInstance: ${{ env.SN_INSTANCE }}
