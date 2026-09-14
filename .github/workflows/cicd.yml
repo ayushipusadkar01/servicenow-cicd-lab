@@ -1,28 +1,27 @@
 # Cloud Dimensions - ServiceNow CI/CD lab pipeline
-# Branch: main  (Lab 4 / Lesson 8 - Run an ATF Suite and Instance Scan in a Pipeline)
-# Completed state: the full pipeline - the pre-written instance-resolution step, job-level
-# pipeline credentials, the apply changes step, the ATF test suite step (Part 1), and
-# the instance scan step (Part 2). Each added step carries its own step-level env
-# block.
+# Branch: main
+# Lab 4 / Lesson 8 - Run an ATF Suite and Instance Scan in a Pipeline
+
 name: CICD Pipeline
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     env:
       nowUsername: ${{ secrets.SN_USERNAME }}
       nowPassword: ${{ secrets.SN_PASSWORD }}
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      # Pre-written for you - you do not need to edit this step.
-      # The sncicd-* actions build their request URL as
-      # https://${nowSourceInstance}.service-now.com/api/... so they need the
-      # bare instance name only. This step accepts whatever you pasted into the
-      # SN_INSTANCE_DOMAIN variable (full URL, hostname, or bare name), reduces
-      # it to that bare form, and stops the run with a clear message if it cannot.
+
+      # Resolve ServiceNow instance
       - name: Resolve ServiceNow instance
         env:
           RAW: ${{ vars.SN_INSTANCE_DOMAIN }}
@@ -31,13 +30,7 @@ jobs:
             echo "::error::SN_INSTANCE_DOMAIN is not set. Add it under Settings, then Secrets and variables, then Actions, on the Variables tab."
             exit 1
           fi
-          # This step cleans up whatever you pasted into SN_INSTANCE_DOMAIN: it
-          # lowercases the value, strips a leading https:// or trailing slash, and
-          # removes a trailing .service-now.com if you included it.
-          # It also rejects angle brackets, quotes, and other characters that do not
-          # belong in a hostname - for example, if you paste the placeholder text
-          # nowlearning-<your-instance-id>.lab literally instead of your real
-          # instance name, this step catches that and tells you what to fix.
+
           INSTANCE=$(printf '%s' "$RAW" \
             | tr -d '[:space:]' \
             | tr '[:upper:]' '[:lower:]' \
@@ -47,28 +40,37 @@ jobs:
                   -e 's#^[^a-z0-9]*##' \
                   -e 's#[^a-z0-9]*$##' \
                   -e 's#\.service-now\.com$##')
+
           case "$INSTANCE" in
             ''|*[!a-z0-9.-]*|-*|*-|.*|*.|*..*)
               echo "::error::SN_INSTANCE_DOMAIN could not be read as an instance name."
               echo "::error::You entered: $RAW"
               echo "::error::Expected something like: your-instance-id.lab"
               echo "::error::Enter the instance name only - no https://, no angle brackets, no quotes."
-              exit 1 ;;
+              exit 1
+              ;;
           esac
+
           echo "Resolved ServiceNow instance: $INSTANCE"
           echo "SN_INSTANCE=$INSTANCE" >> "$GITHUB_ENV"
+
+      # Apply changes
       - name: Apply changes
         uses: ServiceNow/sncicd-apply-changes@2.0.0
         continue-on-error: true
         env:
-           nowSourceInstance: ${{ env.SN_INSTANCE }}
+          nowSourceInstance: ${{ env.SN_INSTANCE }}
           appScope: x_cd_grc_app
+
+      # Part 1 - Run ATF test suite
       - name: Run ATF test suite
         uses: ServiceNow/sncicd-tests-run@2.0.0
         with:
           testSuiteSysId: 90f283440db503107f44aad64471050b
         env:
           nowInstallInstance: ${{ env.SN_INSTANCE }}
+
+      # Part 2 - Run Instance Scan
       - name: Run Instance Scan
         uses: ServiceNow/sncicd-instance-scan@2.0.0
         with:
@@ -76,7 +78,7 @@ jobs:
           suiteSysId: 6237eabc53203010b846ddeeff7b12c3
           appScopeSysIds: 7f0cfe480d7503107f44aad6447105bd
         env:
-          nowScanInstance: ${{ env.SN_INSTANCE }}
+            nowScanInstance: ${{ env.SN_INSTANCE }}
           suiteSysId: 6237eabc53203010b846ddeeff7b12c3
           appScopeSysIds: 7f0cfe480d7503107f44aad6447105bd
         env:
