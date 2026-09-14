@@ -65,8 +65,24 @@ jobs:
         uses: ServiceNow/sncicd-apply-changes@d9e560381b65fc450f8dc85b084c1a6cc40e503c  # 2.0.0, pinned 2026-08-07 LOOP-356 (node12 EOL mitigation)
         continue-on-error: true
         env:
-          nowSourceInstance: ${{ env.SN_INSTANCE }}
+             nowSourceInstance: ${{ env.SN_INSTANCE }}
           appScope: x_cd_grc_app
+
+      - name: Run ATF test suite
+        uses: ServiceNow/sncicd-tests-run@2.0.0
+        with:
+          testSuiteSysId: 90f283440db503107f44aad64471050b
+        env:
+          nowInstallInstance: ${{ env.SN_INSTANCE }}
+
+      - name: Run Instance Scan
+        uses: ServiceNow/sncicd-instance-scan@2.0.0
+        with:
+          scantype: suite_scoped
+          suiteSysId: 6237eabc53203010b846ddeeff7b12c3
+          appScopeSysIds: 7f0cfe480d7503107f44aad6447105bd
+        env:
+          nowScanInstance: ${{ env.SN_INSTANCE }}
 
       # TODO: Add the ATF test suite step here (Part 1)
 
