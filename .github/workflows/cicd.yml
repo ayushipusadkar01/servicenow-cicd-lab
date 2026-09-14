@@ -54,7 +54,8 @@ jobs:
               echo "::error::Expected something like: your-instance-id.lab"
               echo "::error::Enter the instance name only - no https://, no angle brackets, no quotes."
               exit 1 ;;
-          esac
+        #  esac
+        run: |
           echo "Resolved ServiceNow instance: $INSTANCE"
           echo "SN_INSTANCE=$INSTANCE" >> "$GITHUB_ENV"
       - name: Apply changes
